@@ -19,6 +19,8 @@ public class MemoryWord {
    
         this.address = address;
         this.data_dec = dec_val;
+        this.data_bin = Integer.toBinaryString(Integer.valueOf(dec_val));
+        this.data_hex = Integer.toHexString(Integer.valueOf(dec_val));
     }
 
     public int getAddress() {

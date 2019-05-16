@@ -67,12 +67,11 @@ public class Memory {
                     }
                 }
             }
-            if(currentvalue < aux.getWord().getAddress()){
+            if (currentvalue < aux.getWord().getAddress()) {
                 newNode.setNextWord(aux);
                 start = newNode;
                 lenght++;
-            }
-            else if (currentvalue == aux.getWord().getAddress()) {
+            } else if (currentvalue == aux.getWord().getAddress()) {
                 aux.getWord().setData_bin(Integer.toBinaryString(Integer.valueOf(value)));
                 aux.getWord().setData_dec(value);
                 aux.getWord().setData_hex(Integer.toHexString(Integer.valueOf(value)));
@@ -90,6 +89,42 @@ public class Memory {
             }
         }
 
+    }
+
+    public String getFromMemory(int address, int base) {
+        MemNode aux = start;
+        boolean found = false;
+        String result = "";
+        if (isEmpty()) {
+            //System.out.println("empty memory");
+        } else {
+            for (int i = 0; i <= lenght; i++) {
+                if (address == aux.getWord().getAddress()) {
+                    switch(base){
+                        case 10:
+                            result += aux.getWord().getData_dec();
+                            break;
+                        case 2:
+                            result += aux.getWord().getData_bin();
+                            break;
+                        case 16:
+                            result += aux.getWord().getData_hex();
+                    }
+                    found = true;
+                    break;
+                }
+                aux = aux.getNext();
+            }
+        }
+        if (!found) {
+            result += "0";
+        }
+        return result;
+    }
+
+    public void clearMemory() {
+        start = null;
+        lenght = 0;
     }
 
     public void printMemoryValues() {

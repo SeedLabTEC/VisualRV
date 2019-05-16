@@ -43,9 +43,11 @@ public class RegisterMemory {
     private final RegisterWord x29;
     private final RegisterWord x30;
     private final RegisterWord x31;
-   
+    private RegisterWord Xn;
+    
 
     public RegisterMemory() {
+        Xn = null;
         x00 = new RegisterWord("x00", "00");
         x01 = new RegisterWord("x01", "04");
         x02 = new RegisterWord("x02", "08");
@@ -85,106 +87,7 @@ public class RegisterMemory {
     public String readRegisterValue(String registerName, int dataBase) {//data base: 2, 10, 16
 
         String result = "";
-        RegisterWord Xn = null;
-        switch (registerName) {
-            case "x00":
-                Xn = x00;
-                break;
-            case "x01":
-                Xn = x01;
-                break;
-            case "x02":
-                Xn = x02;
-                break;
-            case "x03":
-                Xn = x03;
-                break;
-            case "x04":
-                Xn = x04;
-                break;
-            case "x05":
-                Xn = x05;
-                break;
-            case "x06":
-                Xn = x06;
-                break;
-            case "x07":
-                Xn = x07;
-                break;
-            case "x08":
-                Xn = x08;
-                break;
-            case "x09":
-                Xn = x09;
-                break;
-            case "x10":
-                Xn = x10;
-                break;
-            case "x11":
-                Xn = x11;
-                break;
-            case "x12":
-                Xn = x12;
-                break;
-            case "x13":
-                Xn = x13;
-                break;
-            case "x14":
-                Xn = x14;
-                break;
-            case "x15":
-                Xn = x15;
-                break;
-            case "x16":
-                Xn = x16;
-                break;
-            case "x17":
-                Xn = x17;
-                break;
-            case "x18":
-                Xn = x18;
-                break;
-            case "x19":
-                Xn = x19;
-                break;
-            case "x20":
-                Xn = x20;
-                break;
-            case "x21":
-                Xn = x21;
-                break;
-            case "x22":
-                Xn = x22;
-                break;
-            case "x23":
-                Xn = x23;
-                break;
-            case "x24":
-                Xn = x24;
-                break;
-            case "x25":
-                Xn = x25;
-                break;
-            case "x26":
-                Xn = x26;
-                break;
-            case "x27":
-                Xn = x27;
-                break;
-            case "x28":
-                Xn = x28;
-                break;
-            case "x29":
-                Xn = x29;
-                break;
-            case "x30":
-                Xn = x30;
-                break;
-            case "x31":
-                Xn = x31;
-                break;
-        }
-
+        getCurrentRegisterWord(registerName.toLowerCase());
         switch (dataBase) {
 
             case 2:
@@ -195,7 +98,7 @@ public class RegisterMemory {
                 break;
             case 16:
                 result += Xn.getData_hex();
-                break;    
+                break;
             default:
                 result += Xn.getData_dec();
         }
@@ -203,12 +106,8 @@ public class RegisterMemory {
         return result;
     }
 
-    public void recordRegisterValue(String registerName, String decValue) {
-        String bin_val = Integer.toBinaryString(Integer.valueOf(decValue));
-        String hex_val = Integer.toHexString(Integer.valueOf(decValue));
-        RegisterWord Xn = null;
-
-        switch (registerName) {
+    private void getCurrentRegisterWord(String register) {
+        switch (register) {
             case "x00":
                 Xn = x00;
                 break;
@@ -305,7 +204,46 @@ public class RegisterMemory {
             case "x31":
                 Xn = x31;
                 break;
+            case "x0":
+                Xn = x00;
+                break;
+            case "x1":
+                Xn = x01;
+                break;
+            case "x2":
+                Xn = x02;
+                break;
+            case "x3":
+                Xn = x03;
+                break;
+            case "x4":
+                Xn = x04;
+                break;
+            case "x5":
+                Xn = x05;
+                break;
+            case "x6":
+                Xn = x06;
+                break;
+            case "x7":
+                Xn = x07;
+                break;
+            case "x8":
+                Xn = x08;
+                break;
+            case "x9":
+                Xn = x09;
+                break;
+            default:
+                Xn = null;
         }
+    }
+
+    public void recordRegisterValue(String registerName, String decValue) {
+        String bin_val = Integer.toBinaryString(Integer.valueOf(decValue));
+        String hex_val ="0x"+ Integer.toHexString(Integer.valueOf(decValue));
+        getCurrentRegisterWord(registerName.toLowerCase());
+
         Xn.setData_bin(bin_val);
         Xn.setData_dec(decValue);
         Xn.setData_hex(hex_val);
