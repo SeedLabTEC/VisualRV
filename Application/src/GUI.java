@@ -18,9 +18,10 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.File;
 import java.util.ArrayList;
-import javafx.scene.shape.Line;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 
 /**
  *
@@ -51,6 +52,10 @@ public class GUI extends javax.swing.JFrame {
     int EXEC_STEP_STARTED = 0;
     boolean end_flag = false;
     int line_simulation_counter = 0;
+    JOptionPane optionPane;
+    FileFilter txtFilter = new FileTypeFilter(".txt", "Text Document");
+    FileFilter asmFilter = new FileTypeFilter(".s", "Assembler File");
+    FileFilter binFilter = new FileTypeFilter(".bin", "Binary File");
 
     /**
      * Creates new form GUI
@@ -64,7 +69,6 @@ public class GUI extends javax.swing.JFrame {
         rightmemLimit = 100;
         updateTXTfield = true;
         lastLineCount = txt_area.getLineCount();
-        this.setLocationRelativeTo(null);
         currentPath = "none";
         rvanalysis = new RiscvAnalyzer();
         sim = new Simulation();
@@ -85,6 +89,9 @@ public class GUI extends javax.swing.JFrame {
         jLabe_simulation_end_txt.setVisible(false);
         jlabel_simulation_end_icon.setVisible(false);
         infoMsgLbl();
+        this.setBounds(0, 0, 1350, 720);
+        this.setLocationRelativeTo(null);
+        this.setResizable(false);
 
     }
 
@@ -304,7 +311,6 @@ public class GUI extends javax.swing.JFrame {
         checkSintaxButton = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         execute_all_button = new javax.swing.JButton();
-        step_back_button = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         error_log_area = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
@@ -354,8 +360,6 @@ public class GUI extends javax.swing.JFrame {
         infoLbl = new javax.swing.JLabel();
         jLabelError = new javax.swing.JLabel();
         jLabel54 = new javax.swing.JLabel();
-        jComboBoxMemoryBase = new javax.swing.JComboBox<>();
-        reg_base_selection = new javax.swing.JComboBox<>();
         jLabel53 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         x0_val = new javax.swing.JTextField();
@@ -389,9 +393,11 @@ public class GUI extends javax.swing.JFrame {
         jLabel47 = new javax.swing.JLabel();
         jLabel48 = new javax.swing.JLabel();
         jLabel49 = new javax.swing.JLabel();
-        jLabel50 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
+        jLabel50 = new javax.swing.JLabel();
         jLabel55 = new javax.swing.JLabel();
+        reg_base_selection = new javax.swing.JComboBox<>();
+        jComboBoxMemoryBase = new javax.swing.JComboBox<>();
         jLabel51 = new javax.swing.JLabel();
         jlabel_simulation_end_icon = new javax.swing.JLabel();
         jLabe_simulation_end_txt = new javax.swing.JLabel();
@@ -566,15 +572,15 @@ public class GUI extends javax.swing.JFrame {
                 next_step_buttonActionPerformed(evt);
             }
         });
-        getContentPane().add(next_step_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(740, 10, 160, 20));
+        getContentPane().add(next_step_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 10, 250, 20));
 
-        restart_button.setText("Restart");
+        restart_button.setText("Restart simulation");
         restart_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 restart_buttonActionPerformed(evt);
             }
         });
-        getContentPane().add(restart_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(1040, 10, 80, 20));
+        getContentPane().add(restart_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(1020, 10, 290, 20));
 
         txt_area.setBackground(java.awt.Color.lightGray);
         txt_area.setColumns(20);
@@ -597,10 +603,15 @@ public class GUI extends javax.swing.JFrame {
                 checkSintaxButtonActionPerformed(evt);
             }
         });
-        getContentPane().add(checkSintaxButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 160, 20));
+        getContentPane().add(checkSintaxButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 190, 20));
 
         jButton2.setText("ASMtoBinary");
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 10, 180, 20));
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 10, 220, 20));
 
         execute_all_button.setText("Execute All");
         execute_all_button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -613,10 +624,7 @@ public class GUI extends javax.swing.JFrame {
                 execute_all_buttonActionPerformed(evt);
             }
         });
-        getContentPane().add(execute_all_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 10, 140, 20));
-
-        step_back_button.setText("Step Back");
-        getContentPane().add(step_back_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 10, 140, 20));
+        getContentPane().add(execute_all_button, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 10, 310, 20));
 
         error_log_area.setColumns(20);
         error_log_area.setForeground(new java.awt.Color(255, 0, 0));
@@ -630,7 +638,7 @@ public class GUI extends javax.swing.JFrame {
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         x16_val.setBackground(new java.awt.Color(170, 170, 170));
-        x16_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x16_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x16_val.setForeground(new java.awt.Color(70, 70, 70));
         x16_val.setText("jTextField1");
         x16_val.addActionListener(new java.awt.event.ActionListener() {
@@ -641,91 +649,91 @@ public class GUI extends javax.swing.JFrame {
         jPanel1.add(x16_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 12, 238, -1));
 
         x17_val.setBackground(new java.awt.Color(128, 185, 236));
-        x17_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x17_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x17_val.setForeground(new java.awt.Color(70, 70, 70));
         x17_val.setText("jTextField1");
         jPanel1.add(x17_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 43, 238, -1));
 
         x19_val.setBackground(new java.awt.Color(128, 185, 236));
-        x19_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x19_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x19_val.setForeground(new java.awt.Color(70, 70, 70));
         x19_val.setText("jTextField1");
         jPanel1.add(x19_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 105, 238, -1));
 
         x18_val.setBackground(new java.awt.Color(170, 170, 170));
-        x18_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x18_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x18_val.setForeground(new java.awt.Color(70, 70, 70));
         x18_val.setText("jTextField1");
         jPanel1.add(x18_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 74, 238, -1));
 
         x20_val.setBackground(new java.awt.Color(170, 170, 170));
-        x20_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x20_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x20_val.setForeground(new java.awt.Color(70, 70, 70));
         x20_val.setText("jTextField1");
         jPanel1.add(x20_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 136, 238, -1));
 
         x21_val.setBackground(new java.awt.Color(128, 185, 236));
-        x21_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x21_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x21_val.setForeground(new java.awt.Color(70, 70, 70));
         x21_val.setText("jTextField1");
         jPanel1.add(x21_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 167, 238, -1));
 
         x22_val.setBackground(new java.awt.Color(170, 170, 170));
-        x22_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x22_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x22_val.setForeground(new java.awt.Color(70, 70, 70));
         x22_val.setText("jTextField1");
         jPanel1.add(x22_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 198, 238, -1));
 
         x23_val.setBackground(new java.awt.Color(128, 185, 236));
-        x23_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x23_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x23_val.setForeground(new java.awt.Color(70, 70, 70));
         x23_val.setText("jTextField1");
         jPanel1.add(x23_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 229, 238, -1));
 
         x24_val.setBackground(new java.awt.Color(170, 170, 170));
-        x24_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x24_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x24_val.setForeground(new java.awt.Color(70, 70, 70));
         x24_val.setText("jTextField1");
         jPanel1.add(x24_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 260, 238, -1));
 
         x25_val.setBackground(new java.awt.Color(128, 185, 236));
-        x25_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x25_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x25_val.setForeground(new java.awt.Color(70, 70, 70));
         x25_val.setText("jTextField1");
         jPanel1.add(x25_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 291, 238, -1));
 
         x26_val.setBackground(new java.awt.Color(170, 170, 170));
-        x26_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x26_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x26_val.setForeground(new java.awt.Color(70, 70, 70));
         x26_val.setText("jTextField1");
         jPanel1.add(x26_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 322, 238, -1));
 
         x27_val.setBackground(new java.awt.Color(128, 185, 236));
-        x27_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x27_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x27_val.setForeground(new java.awt.Color(70, 70, 70));
         x27_val.setText("jTextField1");
         jPanel1.add(x27_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 353, 238, -1));
 
         x28_val.setBackground(new java.awt.Color(170, 170, 170));
-        x28_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x28_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x28_val.setForeground(new java.awt.Color(70, 70, 70));
         x28_val.setText("jTextField1");
         jPanel1.add(x28_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 384, 238, -1));
 
         x29_val.setBackground(new java.awt.Color(128, 185, 236));
-        x29_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x29_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x29_val.setForeground(new java.awt.Color(70, 70, 70));
         x29_val.setText("jTextField1");
         jPanel1.add(x29_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 415, 238, -1));
 
         x30_val.setBackground(new java.awt.Color(170, 170, 170));
-        x30_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x30_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x30_val.setForeground(new java.awt.Color(70, 70, 70));
         x30_val.setText("jTextField1");
         jPanel1.add(x30_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 446, 238, -1));
 
         x31_val.setBackground(new java.awt.Color(128, 185, 236));
-        x31_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x31_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x31_val.setForeground(new java.awt.Color(70, 70, 70));
         x31_val.setText("jTextField1");
         jPanel1.add(x31_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 477, 238, -1));
@@ -919,22 +927,6 @@ public class GUI extends javax.swing.JFrame {
 
         jPanel1.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 360, 290, 150));
 
-        jComboBoxMemoryBase.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "DEC", "BIN", "HEX" }));
-        jComboBoxMemoryBase.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxMemoryBaseActionPerformed(evt);
-            }
-        });
-        jPanel1.add(jComboBoxMemoryBase, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 560, 70, -1));
-
-        reg_base_selection.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "DEC", "BIN", "HEX" }));
-        reg_base_selection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                reg_base_selectionActionPerformed(evt);
-            }
-        });
-        jPanel1.add(reg_base_selection, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 530, 70, -1));
-
         jLabel53.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/bg.png"))); // NOI18N
         jPanel1.add(jLabel53, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
@@ -945,7 +937,7 @@ public class GUI extends javax.swing.JFrame {
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         x0_val.setBackground(new java.awt.Color(128, 185, 236));
-        x0_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x0_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x0_val.setForeground(new java.awt.Color(70, 70, 70));
         x0_val.setText("jTextField1");
         x0_val.addActionListener(new java.awt.event.ActionListener() {
@@ -956,91 +948,91 @@ public class GUI extends javax.swing.JFrame {
         jPanel3.add(x0_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 12, 238, -1));
 
         x1_val.setBackground(new java.awt.Color(170, 170, 170));
-        x1_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x1_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x1_val.setForeground(new java.awt.Color(70, 70, 70));
         x1_val.setText("jTextField1");
         jPanel3.add(x1_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 43, 238, -1));
 
         x3_val.setBackground(new java.awt.Color(170, 170, 170));
-        x3_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x3_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x3_val.setForeground(new java.awt.Color(70, 70, 70));
         x3_val.setText("jTextField1");
         jPanel3.add(x3_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 105, 238, -1));
 
         x2_val.setBackground(new java.awt.Color(128, 185, 236));
-        x2_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x2_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x2_val.setForeground(new java.awt.Color(70, 70, 70));
         x2_val.setText("jTextField1");
         jPanel3.add(x2_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 74, 238, -1));
 
         x4_val.setBackground(new java.awt.Color(128, 185, 236));
-        x4_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x4_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x4_val.setForeground(new java.awt.Color(70, 70, 70));
         x4_val.setText("jTextField1");
         jPanel3.add(x4_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 136, 238, -1));
 
         x5_val.setBackground(new java.awt.Color(170, 170, 170));
-        x5_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x5_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x5_val.setForeground(new java.awt.Color(70, 70, 70));
         x5_val.setText("jTextField1");
         jPanel3.add(x5_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 167, 238, -1));
 
         x6_val.setBackground(new java.awt.Color(128, 185, 236));
-        x6_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x6_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x6_val.setForeground(new java.awt.Color(70, 70, 70));
         x6_val.setText("jTextField1");
         jPanel3.add(x6_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 198, 238, -1));
 
         x7_val.setBackground(new java.awt.Color(170, 170, 170));
-        x7_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x7_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x7_val.setForeground(new java.awt.Color(70, 70, 70));
         x7_val.setText("jTextField1");
         jPanel3.add(x7_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 229, 238, -1));
 
         x8_val.setBackground(new java.awt.Color(128, 185, 236));
-        x8_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x8_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x8_val.setForeground(new java.awt.Color(70, 70, 70));
         x8_val.setText("jTextField1");
         jPanel3.add(x8_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 260, 238, -1));
 
         x9_val.setBackground(new java.awt.Color(170, 170, 170));
-        x9_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x9_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x9_val.setForeground(new java.awt.Color(70, 70, 70));
         x9_val.setText("jTextField1");
         jPanel3.add(x9_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 291, 238, -1));
 
         x10_val.setBackground(new java.awt.Color(128, 185, 236));
-        x10_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x10_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x10_val.setForeground(new java.awt.Color(70, 70, 70));
         x10_val.setText("jTextField1");
         jPanel3.add(x10_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 322, 238, -1));
 
         x11_val.setBackground(new java.awt.Color(170, 170, 170));
-        x11_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x11_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x11_val.setForeground(new java.awt.Color(70, 70, 70));
         x11_val.setText("jTextField1");
         jPanel3.add(x11_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 353, 238, -1));
 
         x12_val.setBackground(new java.awt.Color(128, 185, 236));
-        x12_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x12_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x12_val.setForeground(new java.awt.Color(70, 70, 70));
         x12_val.setText("jTextField1");
         jPanel3.add(x12_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 384, 238, -1));
 
         x13_val.setBackground(new java.awt.Color(170, 170, 170));
-        x13_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x13_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x13_val.setForeground(new java.awt.Color(70, 70, 70));
         x13_val.setText("jTextField1");
         jPanel3.add(x13_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 415, 238, -1));
 
         x14_val.setBackground(new java.awt.Color(128, 185, 236));
-        x14_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x14_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x14_val.setForeground(new java.awt.Color(70, 70, 70));
         x14_val.setText("jTextField1");
         jPanel3.add(x14_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 446, 238, -1));
 
         x15_val.setBackground(new java.awt.Color(170, 170, 170));
-        x15_val.setFont(new java.awt.Font("Ubuntu", 3, 14)); // NOI18N
+        x15_val.setFont(new java.awt.Font("Ubuntu", 3, 12)); // NOI18N
         x15_val.setForeground(new java.awt.Color(70, 70, 70));
         x15_val.setText("jTextField1");
         jPanel3.add(x15_val, new org.netbeans.lib.awtextra.AbsoluteConstraints(44, 477, 238, -1));
@@ -1135,21 +1127,37 @@ public class GUI extends javax.swing.JFrame {
         jLabel49.setText("x14");
         jPanel3.add(jLabel49, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 446, -1, -1));
 
+        jLabel17.setFont(new java.awt.Font("Ubuntu", 3, 18)); // NOI18N
+        jLabel17.setForeground(new java.awt.Color(254, 254, 254));
+        jLabel17.setText("Registers numerical base");
+        jPanel3.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 530, 240, -1));
+
         jLabel50.setBackground(new java.awt.Color(197, 188, 209));
         jLabel50.setFont(new java.awt.Font("Trebuchet MS", 1, 18)); // NOI18N
         jLabel50.setForeground(new java.awt.Color(254, 254, 254));
         jLabel50.setText("x15");
         jPanel3.add(jLabel50, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 477, -1, -1));
 
-        jLabel17.setFont(new java.awt.Font("Ubuntu", 3, 18)); // NOI18N
-        jLabel17.setForeground(new java.awt.Color(254, 254, 254));
-        jLabel17.setText("Registers base");
-        jPanel3.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 530, 140, -1));
-
         jLabel55.setFont(new java.awt.Font("Ubuntu", 3, 18)); // NOI18N
         jLabel55.setForeground(new java.awt.Color(254, 254, 254));
-        jLabel55.setText("Memory base");
-        jPanel3.add(jLabel55, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 560, -1, -1));
+        jLabel55.setText("Memory numerical base");
+        jPanel3.add(jLabel55, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 560, -1, -1));
+
+        reg_base_selection.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "DEC", "BIN", "HEX" }));
+        reg_base_selection.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reg_base_selectionActionPerformed(evt);
+            }
+        });
+        jPanel3.add(reg_base_selection, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 530, 70, -1));
+
+        jComboBoxMemoryBase.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "DEC", "BIN", "HEX" }));
+        jComboBoxMemoryBase.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxMemoryBaseActionPerformed(evt);
+            }
+        });
+        jPanel3.add(jComboBoxMemoryBase, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 560, 70, -1));
 
         jLabel51.setFont(new java.awt.Font("Ubuntu", 3, 18)); // NOI18N
         jLabel51.setForeground(new java.awt.Color(254, 254, 254));
@@ -1219,9 +1227,19 @@ public class GUI extends javax.swing.JFrame {
         jMenu3.add(jMenuItem2);
 
         jMenuItem4.setText("RISC-V info");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem4);
 
         jMenuItem5.setText("Supported Instructions");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem5);
 
         jMenuBar1.add(jMenu3);
@@ -1229,9 +1247,19 @@ public class GUI extends javax.swing.JFrame {
         jMenu4.setText("About");
 
         jMenuItem6.setText("Version");
+        jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem6ActionPerformed(evt);
+            }
+        });
         jMenu4.add(jMenuItem6);
 
         jMenuItem7.setText("License");
+        jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem7ActionPerformed(evt);
+            }
+        });
         jMenu4.add(jMenuItem7);
 
         jMenuBar1.add(jMenu4);
@@ -1252,11 +1280,12 @@ public class GUI extends javax.swing.JFrame {
         jLabe_simulation_end_txt.setVisible(false);
         jlabel_simulation_end_icon.setVisible(false);
         line_simulation_counter = 0;
-        jLabelLineCounter.setText(String.valueOf(line_simulation_counter));
-        
+        //jLabelLineCounter.setText(String.valueOf(line_simulation_counter));
+
     }//GEN-LAST:event_restart_buttonActionPerformed
 
     private void restartWindowSimulationValues() {
+        error_log_area.setText("");
         sim.mem.clearMemory();
         cleanMemoryView();
         sim.reg.initRegisters();
@@ -1322,6 +1351,7 @@ public class GUI extends javax.swing.JFrame {
 
         updateTXTfield = true;
         JFileChooser chooser = new JFileChooser();
+        chooser.addChoosableFileFilter(asmFilter);
         chooser.showOpenDialog(null);
         File f = chooser.getSelectedFile();
         if (f != null) {
@@ -1429,7 +1459,7 @@ public class GUI extends javax.swing.JFrame {
                 updateRegistersView();
                 updateMemoryContentView();
                 line_simulation_counter++;
-                jLabelLineCounter.setText(String.valueOf(line_simulation_counter));
+                //jLabelLineCounter.setText(String.valueOf(line_simulation_counter));
             }
 
         } else {
@@ -1441,10 +1471,54 @@ public class GUI extends javax.swing.JFrame {
                 updateRegistersView();
                 updateMemoryContentView();
                 line_simulation_counter++;
-                jLabelLineCounter.setText(String.valueOf(line_simulation_counter));
+                //jLabelLineCounter.setText(String.valueOf(line_simulation_counter));
             }
         }
     }//GEN-LAST:event_next_step_buttonActionPerformed
+
+    private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
+        // TODO add your handling code here:
+
+        //license
+        //optionPane.showMessageDialog(null, "dddddddddddddddd", "InfoBox: " + "Version", JOptionPane.INFORMATION_MESSAGE);
+        LicenseView lic = new LicenseView();
+        lic.setVisible(true);
+    }//GEN-LAST:event_jMenuItem7ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+
+        if (currentPath.equals("none")) {
+            error_log_area.setText("");
+            error_log_area.setText("PLEASE SAVE THE CURRENT FILE");
+        } else {
+            makeAnalysis();
+            if (!rvanalysis.getErrorsFlag()) {
+                String path = getPathToBinaryFile();
+                AssemblerToBinary asm = new AssemblerToBinary(rvanalysis.getInstructionBuffer(), rvanalysis.getLineCounter(), path);
+            }
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        try {
+            // TODO add your handling code here:
+            String URL_info = "https://riscv.org/risc-v-books/";
+            java.awt.Desktop.getDesktop().browse(java.net.URI.create(URL_info));
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        // TODO add your handling code here:
+        SuppInstructions sup = new SuppInstructions();
+        sup.setVisible(true);
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_jMenuItem6ActionPerformed
 
     private void updateMemoryContentView() {
         memoryList.clear();
@@ -1454,14 +1528,40 @@ public class GUI extends javax.swing.JFrame {
 
     private void saveAsAction() {
         JFileChooser chooser = new JFileChooser();
-        chooser.showSaveDialog(null);
-        File f = chooser.getSelectedFile();
 
+        chooser.addChoosableFileFilter(txtFilter);
+        chooser.addChoosableFileFilter(asmFilter);
+        chooser.setDialogTitle("Save the current assembly file");
+        chooser.showSaveDialog(null);
+
+        File f = chooser.getSelectedFile();
         if (f != null) {
             String filename = f.getAbsolutePath();
-            currentPath = filename;
+            String ext = chooser.getFileFilter().getDescription();
+            if(chooser.getFileFilter().getDescription().equals("Text Document (*.txt)")) currentPath = filename+".txt";
+            else if(chooser.getFileFilter().getDescription().equals("Assembler File (*.s)")) currentPath = filename+".s";
+            else{currentPath = filename;}
             saveTxtArea(currentPath);
         }
+
+    }
+
+    private String getPathToBinaryFile() {
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.addChoosableFileFilter(binFilter);
+        chooser.setDialogTitle("Save the current binary file");
+        chooser.showSaveDialog(null);
+        File f = chooser.getSelectedFile();
+        String filename = null;
+
+        if (f != null) {
+            
+            filename = f.getAbsolutePath();
+            String ext = chooser.getFileFilter().getDescription();
+            if(chooser.getFileFilter().getDescription().equals("Binary File (*.bin)")) filename = filename+".bin";
+        }
+        return filename;
     }
 
     private void loadFileContentToTxtArea(String file_name_path) {
@@ -1746,7 +1846,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> reg_base_selection;
     private javax.swing.JButton restart_button;
     private javax.swing.JScrollPane scrollPaneTxt;
-    private javax.swing.JButton step_back_button;
     private javax.swing.JTextArea txt_area;
     private javax.swing.JTextField x0_val;
     private javax.swing.JTextField x0_val1;

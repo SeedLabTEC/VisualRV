@@ -60,15 +60,14 @@ public class Simulation {
     public void step_exec() {
         if (PC < lineCounter * 4) {
             nextStep();
-            PC = PC+4;
-        }
-        else if(PC == lineCounter*4){
+            PC = PC + 4;
+        } else if (PC == lineCounter * 4) {
             boolean end_flag = true;
         }
     }
 
     private void nextStep() {
-        InstructionBuffer[PC / 4] = checkDTI(InstructionBuffer[PC / 4]);//check data transfer imm;
+        //InstructionBuffer[PC / 4] = checkDTI(InstructionBuffer[PC / 4]);//check data transfer imm;
         for (int j = 0; j < InstructionBuffer[PC / 4].length; j++) {
             System.out.print(InstructionBuffer[PC / 4][j] + "~");
             //System.out.println("this tamaño -> " + InstructionBuffer[i].length);
@@ -271,6 +270,8 @@ public class Simulation {
                 case '8':
                     break;
                 case '9':
+                    break;
+                case '-':
                     break;
                 default:
                     result = false;

@@ -5,6 +5,12 @@
  */
 package rvsomecode;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author daniel
@@ -20,43 +26,85 @@ public class AssemblerToBinary {
     String[] SB_inst = {"BEQ", "BNE", "BLT", "BGE", "BLTU", "BGEU", "beq", "bne", "blt", "bge", "bltu", "bgeu"};
     String[] U_inst = {"LUI", "AUIPC", "lui", "auipc"};
     String[] UJ_inst = {"JAL", "JALR", "jal", "jalr"};
+    int buffer_lenght;
+    String save_path;
 
     ;
 
-    public AssemblerToBinary(String[][] InstructionBuffer) {
+    public AssemblerToBinary(String[][] InstructionBuffer, int buffer_lenght, String save_path) {
         this.InstructionBuffer = InstructionBuffer;
-        //printInstructionBuffer();
-        //convertAll();
-        //convertLine(1);//index
+        this.save_path = save_path;
+        this.buffer_lenght = buffer_lenght;
+        fixLabels();
+        printInstructionBuffer();
+        convertAll();
+        //convertLine(2);//index
 
     }
-    
-    public void convertAll(){
-        int bufferLenght = InstructionBuffer.length;
-        for (int i = 1; i < bufferLenght; i++) {
+
+    private void fixLabels() {
+        int temp_addr = 0;
+        for (int i = 0; i < buffer_lenght; i++) {
+            InstructionBuffer[i][0] = String.valueOf(temp_addr);
+            if (isLabel(InstructionBuffer[i][1]) && InstructionBuffer[i].length == 2) {
+                //do nothing when it has a label with no parameters
+            } else {
+                temp_addr += 4;
+            }
+
+        }
+
+    }
+
+    private void convertAll() {
+        //int bufferLenght = InstructionBuffer.length;
+        for (int i = 1; i <= buffer_lenght; i++) {
             convertLine(i);
         }
     }
+    
+    private void writeBinary(String data){
+            BufferedWriter writer = null;
+            try {
+                // TODO add your handling code here:
+                writer = new BufferedWriter(new FileWriter(save_path, true));
+                writer.append(data);
+                writer.append("\n");
+                writer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    writer.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+    }
 
     public void convertLine(int index_) {
-        int index = index_-1;
+        int index = index_ - 1;
         String type = "";
-        
+
         int i = (isLabel(InstructionBuffer[index][1])) ? 2 : 1;
         type = verifyInstrType(InstructionBuffer[index][i]);
 
         switch (type) {
             case "R":
-                System.out.println("the line "+index_+" binary code is "+createR_Type(i, index));
+                //System.out.println("the line " + index_ + " binary code is " + createR_Type(i, index));
+                writeBinary(createR_Type(i, index));
                 break;
             case "I":
-                System.out.println("the line "+index_+" binary code is "+createI_Type(i, index));
+                //System.out.println("the line " + index_ + " binary code is " + createI_Type(i, index));
+                writeBinary(createI_Type(i, index));
                 break;
             case "S":
-                //createS_Type(line,i);
+                //System.out.println("the line " + index_ + " binary code is " + createS_Type(i, index));
+                writeBinary(createS_Type(i, index));
                 break;
             case "SB":
-                //createSB_Type(line,i);
+                //System.out.println("the line " + index_ + " binary code is " + createSB_Type(i, index));
+                writeBinary(createSB_Type(i, index));
                 break;
 
             case "U":
@@ -71,6 +119,125 @@ public class AssemblerToBinary {
 
         }
         System.out.println("This is type " + type);
+
+    }
+
+    private String createSB_Type(int index, int lineNumber) {
+        String binary = "";
+        String opcode = "1100011";
+        String instr = InstructionBuffer[lineNumber][index];
+        String r1 = convertRegister(InstructionBuffer[lineNumber][index + 1]);
+        String imm = convertImmToBinary_13_bit(setBranchAddress(InstructionBuffer[lineNumber][index + 3],Integer.valueOf(InstructionBuffer[lineNumber][0])));//pasar de decimal a binario
+        String r2 = convertRegister(InstructionBuffer[lineNumber][index + 2]);
+        /*
+        imm1[12j10:5] rs2 rs1 000 imm2[4:1j11] 1100011 B beq
+        imm[12j10:5] rs2 rs1 001 imm[4:1j11] 1100011 B bne
+        imm[12j10:5] rs2 rs1 100 imm[4:1j11] 1100011 B blt
+        imm[12j10:5] rs2 rs1 101 imm[4:1j11] 1100011 B bge
+        imm[12j10:5] rs2 rs1 110 imm[4:1j11] 1100011 B bltu
+        imm[12j10:5] rs2 rs1 111 imm[4:1j11] 1100011 B bgeu
+        */
+
+        String imm1 = imm.charAt(0)+String.copyValueOf(imm.toCharArray(), 2, 6);
+        String imm2 = String.copyValueOf(imm.toCharArray(), 8, 4)+imm.charAt(1);
+
+        if (instr.equals("beq") || instr.equals("BEQ")) {
+            binary += imm1 + r2 + r1 + "000" + imm2 + opcode;
+        } else if (instr.equals("bne") || instr.equals("BNE")) {
+            binary += imm1 + r2 + r1 + "001" + imm2 + opcode;
+        } else if (instr.equals("blt") || instr.equals("BLT")) {
+            binary += imm1 + r2 + r1 + "100" + imm2 + opcode;
+        }else if (instr.equals("bge") || instr.equals("BGE")) {
+            binary += imm1 + r2 + r1 + "101" + imm2 + opcode;
+        }else if (instr.equals("bltu") || instr.equals("BLTU")) {
+            binary += imm1 + r2 + r1 + "110" + imm2 + opcode;
+        }else if (instr.equals("bgeu") || instr.equals("BGEU")) {
+            binary += imm1 + r2 + r1 + "111" + imm2 + opcode;
+        }
+        return binary;
+    }
+
+    private String setBranchAddress(String Imm, int PC) {
+        String value = "";
+        if(isNumber(Imm)){
+            value += String.valueOf(PC + Integer.valueOf(Imm));
+        }
+        else{
+            value += getAddressFromLabel(Imm, PC);
+            
+        }
+        return value;
+
+    }
+    
+    private String getAddressFromLabel(String label,int PC){
+        String address = "";
+        String lbl_compare = label+"*";
+        int found_label = 0;
+        for (int i = 0; i < buffer_lenght; i++) {
+            if(lbl_compare.equals(InstructionBuffer[i][1])){
+                found_label = 1;
+                address += InstructionBuffer[i][0];
+            }
+        }
+        if(found_label == 0){
+            address += String.valueOf(PC+4);//if label is not found, go to ne next address
+        }
+        return address;
+    }
+
+    private boolean isNumber(String chain) {
+        boolean isNumber = true;
+        for (int i = 0; i < chain.length(); i++) {
+            switch (chain.charAt(i)) {
+                case '0':
+                    break;
+                case '1':
+                    break;
+                case '2':
+                    break;
+                case '3':
+                    break;
+                case '4':
+                    break;
+                case '5':
+                    break;
+                case '6':
+                    break;
+                case '7':
+                    break;
+                case '8':
+                    break;
+                case '9':
+                    break;
+                default:
+                    isNumber = false;
+                    break;
+            }
+        }
+        return isNumber;
+    }
+
+    private String createS_Type(int index, int lineNumber) {
+
+        String binary = "";
+        String opcode = "0100011";
+        String instr = InstructionBuffer[lineNumber][index];
+        String r1 = convertRegister(InstructionBuffer[lineNumber][index + 1]);
+        String imm = convertRegister(InstructionBuffer[lineNumber][index + 3]);//pasar de decimal a binario
+        String r2 = convertRegister(InstructionBuffer[lineNumber][index + 2]);
+
+        String imm1 = String.copyValueOf(imm.toCharArray(), 0, 7);
+        String imm2 = String.copyValueOf(imm.toCharArray(), 7, 5);
+
+        if (instr.equals("sb") || instr.equals("SB")) {
+            binary += imm1 + r2 + r1 + "000" + imm2 + opcode;
+        } else if (instr.equals("sh") || instr.equals("SH")) {
+            binary += imm1 + r2 + r1 + "001" + imm2 + opcode;
+        } else if (instr.equals("sw") || instr.equals("SW")) {
+            binary += imm1 + r2 + r1 + "010" + imm2 + opcode;
+        }
+        return binary;
 
     }
 
@@ -117,45 +284,32 @@ public class AssemblerToBinary {
         String r1 = convertRegister(InstructionBuffer[lineNumber][index + 2]);
         if (instr.equals("lb") || instr.equals("LB")) {
             binary += imm + r1 + "000" + rd + opCodeL;
-        } 
-        else if (instr.equals("lh") || instr.equals("LH")) {
+        } else if (instr.equals("lh") || instr.equals("LH")) {
             binary += imm + r1 + "001" + rd + opCodeL;
-        }
-        else if (instr.equals("lw") || instr.equals("LW")) {
+        } else if (instr.equals("lw") || instr.equals("LW")) {
             binary += imm + r1 + "010" + rd + opCodeL;
-        }
-        else if (instr.equals("lbu") || instr.equals("LBU")) {
+        } else if (instr.equals("lbu") || instr.equals("LBU")) {
             binary += imm + r1 + "100" + rd + opCodeL;
-        }
-        else if (instr.equals("lhu") || instr.equals("LHU")) {
+        } else if (instr.equals("lhu") || instr.equals("LHU")) {
             binary += imm + r1 + "101" + rd + opCodeL;
-        }
-        else if (instr.equals("addi") || instr.equals("ADDI")) {
+        } else if (instr.equals("addi") || instr.equals("ADDI")) {
             binary += imm + r1 + "000" + rd + opCode;
-        }
-        else if (instr.equals("slti") || instr.equals("SLTI")) {
+        } else if (instr.equals("slti") || instr.equals("SLTI")) {
             binary += imm + r1 + "010" + rd + opCode;
-        }
-        else if (instr.equals("sltiu") || instr.equals("SLTIU")) {
+        } else if (instr.equals("sltiu") || instr.equals("SLTIU")) {
             binary += imm + r1 + "011" + rd + opCode;
-        }
-        else if (instr.equals("xori") || instr.equals("XORI")) {
+        } else if (instr.equals("xori") || instr.equals("XORI")) {
             binary += imm + r1 + "100" + rd + opCode;
-        }
-        else if (instr.equals("ori") || instr.equals("ORI")) {
+        } else if (instr.equals("ori") || instr.equals("ORI")) {
             binary += imm + r1 + "110" + rd + opCode;
-        }
-        else if (instr.equals("andi") || instr.equals("ANDI")) {
+        } else if (instr.equals("andi") || instr.equals("ANDI")) {
             binary += imm + r1 + "111" + rd + opCode;
-        }
-        else if (instr.equals("slli") || instr.equals("SLLI")) {
-            binary += "0000000"+imm + r1 + "001" + rd + opCode;
-        }
-        else if (instr.equals("srli") || instr.equals("SRLI")) {
-            binary += "0000000"+imm + r1 + "101" + rd + opCode;
-        }
-        else if (instr.equals("srai") || instr.equals("SRAI")) {
-            binary += "0100000"+imm + r1 + "101" + rd + opCode;
+        } else if (instr.equals("slli") || instr.equals("SLLI")) {
+            binary += "0000000" + imm + r1 + "001" + rd + opCode;
+        } else if (instr.equals("srli") || instr.equals("SRLI")) {
+            binary += "0000000" + imm + r1 + "101" + rd + opCode;
+        } else if (instr.equals("srai") || instr.equals("SRAI")) {
+            binary += "0100000" + imm + r1 + "101" + rd + opCode;
         }
         return binary;
     }
@@ -227,14 +381,53 @@ public class AssemblerToBinary {
         } else if (reg.equals("x31") || reg.equals("X31")) {
             binary += "11111";
         } else {
-            binary += "<immediate value>";
+            binary += convertImmToBinary_12_bit(reg);
         }
 
         return binary;
 
     }
+    private String convertImmToBinary_12_bit(String ImmVal) {
+        String binary = "";
+        int value = Integer.valueOf(ImmVal);
+        binary += Integer.toBinaryString(value);
+        if (value == 0) {
+            binary = "00000000000000000000000000000000";
+        } else if (value > 0) {
+            int lenght = binary.length();
+            int offset = 32 - lenght;
+            String part = "";
+            for (int j = 0; j < offset; j++) {
+                part += "0";
+            }
+            part += binary;
+            binary = part;
+        }
+        return String.copyValueOf(binary.toCharArray(), 20, 12);//return 12 bit of the binary number
 
-    public void printInstructionBuffer() {
+    }
+
+    private String convertImmToBinary_13_bit(String ImmVal) {//need for branches
+        String binary = "";
+        int value = Integer.valueOf(ImmVal);
+        binary += Integer.toBinaryString(value);
+        if (value == 0) {
+            binary = "000000000000000000000000000000000";
+        } else if (value > 0) {
+            int lenght = binary.length();
+            int offset = 32 - lenght;
+            String part = "";
+            for (int j = 0; j < offset; j++) {
+                part += "0";
+            }
+            part += binary;
+            binary = part;
+        }
+        return String.copyValueOf(binary.toCharArray(), 19, 13);//return 12 bit of the binary number
+
+    }
+
+    private void printInstructionBuffer() {
         for (int y = 0; y < InstructionBuffer.length - 3; y++) {
             if (InstructionBuffer[y][0] == null) {
                 break;
@@ -275,19 +468,19 @@ public class AssemblerToBinary {
                 return "S";
             }
         }
-        for (int l = 0; l < S_inst.length; l++) {
+        for (int l = 0; l < SB_inst.length; l++) {
             if (SB_inst[l].equals(instr)) {
                 //instrType = "R";
                 return "SB";
             }
         }
-        for (int m = 0; m < S_inst.length; m++) {
+        for (int m = 0; m < U_inst.length; m++) {
             if (U_inst[m].equals(instr)) {
                 //instrType = "R";
                 return "U";
             }
         }
-        for (int n = 0; n < S_inst.length; n++) {
+        for (int n = 0; n < UJ_inst.length; n++) {
             if (UJ_inst[n].equals(instr)) {
                 //instrType = "R";
                 return "UJ";

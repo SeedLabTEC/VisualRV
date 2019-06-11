@@ -42,6 +42,7 @@ public class RiscvAnalyzer {
 
     String deleteWS_errMSG = "";
     String Parser_errMSG = "";
+    int emptyFile_Flag;
 
     public RiscvAnalyzer() {
     }
@@ -49,10 +50,12 @@ public class RiscvAnalyzer {
     public void makeAnalysis(String file_name) throws IOException {
         clean();
         InstructionBuffer = new String[200][10];
+        emptyFile_Flag = 1;
         try (BufferedReader br = new BufferedReader(new FileReader(file_name))) {
             String line_first;
             int i = 0;
             while ((line_first = br.readLine()) != null) {
+                emptyFile_Flag = 0;
                 String[] line_second = line_first.split(";");
                 if (line_second.length == 0) {
                     continue;
@@ -76,7 +79,14 @@ public class RiscvAnalyzer {
                 }
                 //else{System.out.println("blank space");}
             }
-            System.out.println("ERRORS >> " + isThereErrors);
+            if (emptyFile_Flag == 1) {
+                isThereErrors = true;
+                errorLog("EMPTY FILE", 0);
+                System.out.println("ERRORS >> " + isThereErrors);
+
+            } else {
+                System.out.println("ERRORS >> " + isThereErrors);
+            }
             System.out.println("Number of lines: " + line_counter);
         } catch (IOException ex) {
             Logger.getLogger(RiscV_Test.class.getName()).log(Level.SEVERE, null, ex);
@@ -122,7 +132,7 @@ public class RiscvAnalyzer {
         String[] line = split(newLine);
         checkRegisters(line);
         String[] line2 = insertLineNumber(line, lineNumber);
-        InstructionBuffer[lineNumber] = line2;
+        InstructionBuffer[lineNumber] = checkDTI(line2);
         line_counter++;
 
     }
@@ -174,7 +184,7 @@ public class RiscvAnalyzer {
             } else {
                 checkReg(newLine[4]);
             }
-        } else if (label == false && tamano == 4 && (newLine[0].contains("i")||newLine[0].contains("I"))) {
+        } else if (label == false && tamano == 4 && (newLine[0].contains("i") || newLine[0].contains("I"))) {
             checkReg(newLine[1]);
             checkReg(newLine[2]);
             checkImm(newLine[3]);
@@ -588,6 +598,74 @@ public class RiscvAnalyzer {
             System.out.println("Error: Can't manage this expression -> " + reg);
             isThereErrors = true;
         }
+    }
+
+    private String[] checkDTI(String[] buffLine) {
+        int fix = 0, index = 1;
+        String[] buffLineOut = new String[buffLine.length + 1];
+        String ImmVal = "";
+        String RegVal = "";
+
+        if (buffLine.length == 2) {
+            buffLineOut = buffLine;
+        } else {
+
+            if (isLabel(buffLine[1])) {
+                index = 2;
+            }
+            String instr = buffLine[index].toLowerCase();
+            if (instr.equals("lw") || instr.equals("sw") || instr.equals("lh") || instr.equals("lhu")
+                    || instr.equals("sh") || instr.equals("lb") || instr.equals("lbu") || instr.equals("sb")) {
+                index += 2;
+                if (containString(buffLine[index], ')')) {
+                    fix = 1;
+                } else {
+                    buffLineOut = buffLine;
+                }
+            } else {
+                buffLineOut = buffLine;
+            }
+            if (fix == 1) {
+                String[] unFormat = fixImm(buffLine[index]).split("@");
+                ImmVal += unFormat[0];
+                RegVal += unFormat[1];
+                int i = 0;
+                for (i = 0; i < buffLine.length - 1; i++) {
+                    buffLineOut[i] = buffLine[i];
+                }
+                buffLineOut[i] = RegVal;
+                buffLineOut[i + 1] = ImmVal;
+            }
+        }
+        return buffLineOut;
+    }
+
+    private boolean containString(String a, char b) {
+        boolean isContained = false;
+        for (int i = 0; i < a.length(); i++) {
+            if (a.charAt(i) == b) {
+                isContained = true;
+                break;
+            }
+        }
+        return isContained;
+    }
+    
+        /**
+     *
+     * @param a
+     * @return
+     */
+    private String fixImm(String a) {
+        String result = "";
+        for (int i = 0; i < a.length(); i++) {
+            if (a.charAt(i) == '(' || a.charAt(i) == ')') {
+                result += "@";
+            } else {
+                result += a.charAt(i);
+            }
+        }
+        return result;
     }
 
     private boolean isNumberCharOk(char i) {
